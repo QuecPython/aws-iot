@@ -5,8 +5,8 @@ import log
 
 class MQTTClientWrapper:
     def __init__(self, client_id, server, port, keep_alive=60, ssl=False, ssl_params=None):
-        self.client_id = client_id
-        self.server = server
+        self.client_id = client_id                  #thing name
+        self.server = server                        
         self.port = port
         self.ssl = ssl
         self.ssl_params = ssl_params
@@ -14,8 +14,9 @@ class MQTTClientWrapper:
         self.client = None
         self.connected = False
         self.callbacks = {}
+        self.shadow_topics = {}
         self.logging = log.getLogger("MQTT")
-
+        
     def _connect(self):
         try:
             self.client = MQTTClient(self.client_id,
@@ -40,8 +41,9 @@ class MQTTClientWrapper:
         self.logging.info("Message received on {}: {}".format(topic, msg))
         try:
             msg_json = ujson.loads(msg)
-            if topic in self.callbacks:
-                self.callbacks[topic](msg_json)
+            top = topic.decode()
+            if top in self.callbacks:
+                self.callbacks[top](msg_json)
         except ValueError as e:
             self.logging.error("Failed to parse JSON message on topic {}: {}".format(topic, e))
 

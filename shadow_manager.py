@@ -1,5 +1,6 @@
 import ujson
 import log
+import utime
 
 class ShadowManager:
     def __init__(self, mqtt_client, client_id):
@@ -7,43 +8,83 @@ class ShadowManager:
         self.client_id = client_id
         self.logging = log.getLogger("Shadow")
         self.existing_shadows = set()
-        self.unnamed_shadow_used = 0  # 1 if unnamed shadow is already used, 0 otherwise
+        self.old_callbacks = {}
+        self.accepted_topic = ''
+        self.rejected_topic = ''
 
-    def create_shadow(self, state, shadow_name="", state_type="reported"):
+    #creating shadow
+    def create_shadow(self, shadow_name="", state=""):
+        if not state:
+            state = {"state":{"desired": {"welcome": "aws-iot"},"reported": {"welcome": "aws-iot"}}}
+
         if not shadow_name:
-            if self.unnamed_shadow_used:
-                self.logging.error("Unnamed shadow is already in use.")
-                return
-            self.unnamed_shadow_used = 1
+            #callback used to for shadow existance check. Shadow exists -> state exists.
+            def shadow_check_callback(payload):
+                if "state" in payload:
+                    self.logging.error("Unnamed shadow already exists.")
+                else:
+                    self.update_shadow("", state)
+                    self.logging.info("Unnamed shadow created.")
+                    
+                if self.old_callbacks:
+                    self.mqtt_client.callbacks[self.accepted_topic] = self.old_callbacks[self.accepted_topic]
+                    self.mqtt_client.callbacks[self.rejected_topic] = self.old_callbacks[self.rejected_topic]
+
+                del self.old_callbacks[self.accepted_topic]
+                del self.old_callbacks[self.rejected_topic]
+                    
+            self.get_shadow(shadow_name,callback=shadow_check_callback)
+            utime.sleep(2)  # Wait for AWS response
         else:
-            if shadow_name in self.existing_shadows:
-                self.logging.error("Shadow '%s' already exists", shadow_name)
-                return
-            self.existing_shadows.add(shadow_name)
+            self.update_shadow(shadow_name, state)
+            if shadow_name:
+                self.logging.info("Shadow '{}' updated.".format(shadow_name))
+            else:
+                self.logging.info("Shadow '{}' created.".format(shadow_name))
 
-        self.update_shadow(shadow_name, state, state_type)
-        self.logging.info("Shadow '%s' created", shadow_name if shadow_name else "Unnamed")
-
-    def update_shadow(self, shadow_name, state, state_type="reported"):
-        if not isinstance(state, dict):
-            self.logging.error("State must be a dictionary")
+    #update shadow used for updating(if called from create shadow then used as a create shadow mechanism)
+    def update_shadow(self, shadow_name, state):
+        if not state:
+            self.logging.error("Enter state then try again")
+            return
+        if isinstance(state, dict):
+            state = ujson.dumps(state)  # Convert dict to JSON string if needed
+        elif not isinstance(state, str):
+            self.logging.error("State must be a dictionary or a JSON string")
             return
 
-        if state_type not in ["reported", "desired"]:
-            self.logging.error("Invalid state type: %s", state_type)
-            return
+        shadow_topic = "$aws/things/{}/shadow".format(self.client_id)
+        print(shadow_topic)
+        if shadow_name:
+            shadow_topic += "/name/{}".format(shadow_name)
+        
+        self.mqtt_client.publish("{}/update".format(shadow_topic), state)
 
-        payload = {"state": {state_type: state}}
+    #get shadow state. Accepted and rejected topic used from 
+    def get_shadow(self, shadow_name="",callback=None):
         shadow_topic = "$aws/things/{}/shadow".format(self.client_id)
         if shadow_name:
             shadow_topic += "/name/{}".format(shadow_name)
-        self.mqtt_client.publish("{}/update".format(shadow_topic), ujson.dumps(payload))
+        
+        #if callback exists it means we are here from create shadow method
+        if callback:
+            self.accepted_topic = "{}/get/accepted".format(shadow_topic)
+            self.rejected_topic = "{}/get/rejected".format(shadow_topic)
 
-    def get_shadow(self, shadow_name):
-        shadow_topic = "$aws/things/{}/shadow".format(self.client_id)
-        if shadow_name:
-            shadow_topic += "/name/{}".format(shadow_name)
-        self.mqtt_client.publish("{}/get".format(shadow_topic), "{}")
+            #if callback on our topic already exist store it temporarly in old_callbacks dictionary
+            if self.accepted_topic in self.mqtt_client.callbacks:
+                self.old_callbacks[self.accepted_topic] = self.mqtt_client.callbacks[self.accepted_topic]
+            if self.rejected_topic in self.mqtt_client.callbacks:
+                self.old_callbacks[self.rejected_topic] = self.mqtt_client.callbacks[self.rejected_topic]
+
+            self.mqtt_client.callbacks[self.accepted_topic] = callback
+            self.mqtt_client.callbacks[self.rejected_topic] = callback
+
+            self.mqtt_client.subscribe(self.accepted_topic)
+            self.mqtt_client.subscribe(self.rejected_topic)
+        
+        self.mqtt_client.publish("{}/get".format(shadow_topic), "")
+        
 
     def delete_shadow(self, shadow_name=""):
         shadow_topic = "$aws/things/{}/shadow".format(self.client_id)
