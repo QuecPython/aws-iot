@@ -5,7 +5,7 @@ import log
 
 class MQTTClientWrapper:
     def __init__(self, client_id, server, port, keep_alive=60, ssl=False, ssl_params=None):
-        self.client_id = client_id                  #thing name
+        self.client_id = client_id                  
         self.server = server                        
         self.port = port
         self.ssl = ssl
@@ -13,8 +13,8 @@ class MQTTClientWrapper:
         self.keep_alive = keep_alive
         self.client = None
         self.connected = False
-        self.callbacks = {}
-        self.shadow_topics = {}
+        self.callbacks = {}                     # Dictionary of all callbacks, so user can add one for every topic. Key - topic, value - callback
+        self.shadow_topics = {}                 # Dictionary for storing all the topics which shadow is subscribed to. Key - shadow name, value - list of subscribed topics
         self.logging = log.getLogger("MQTT")
         
     def _connect(self):
@@ -37,13 +37,14 @@ class MQTTClientWrapper:
     def set_callback(self, topic_name, callback):
         self.callbacks[topic_name] = callback
 
+    # Default callback called for every contact from server. 
     def _handle_message(self, topic, msg):
         self.logging.info("Message received on {}: {}".format(topic, msg))
         try:
             msg_json = ujson.loads(msg)
             top = topic.decode()
             if top in self.callbacks:
-                self.callbacks[top](msg_json)
+                self.callbacks[top](msg_json)                                                   # Calling the matching callback from a list
         except ValueError as e:
             self.logging.error("Failed to parse JSON message on topic {}: {}".format(topic, e))
 

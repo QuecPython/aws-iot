@@ -12,10 +12,10 @@ class ShadowManager:
         self.accepted_topic = ''
         self.rejected_topic = ''
 
-    #creating shadow
+    # Creating shadow
     def create_shadow(self, shadow_name="", state=""):
         if not state:
-            state = {"state":{"desired": {"welcome": "aws-iot"},"reported": {"welcome": "aws-iot"}}}
+            state = {"state":{"desired": {"welcome": "aws-iot"},"reported": {"welcome": "aws-iot"}}}    #default state
 
         if not shadow_name:
             #callback used to for shadow existance check. Shadow exists -> state exists.
@@ -29,7 +29,7 @@ class ShadowManager:
                 if self.old_callbacks:
                     self.mqtt_client.callbacks[self.accepted_topic] = self.old_callbacks[self.accepted_topic]
                     self.mqtt_client.callbacks[self.rejected_topic] = self.old_callbacks[self.rejected_topic]
-
+                
                 del self.old_callbacks[self.accepted_topic]
                 del self.old_callbacks[self.rejected_topic]
                     
@@ -60,7 +60,7 @@ class ShadowManager:
         
         self.mqtt_client.publish("{}/update".format(shadow_topic), state)
 
-    #get shadow state. Accepted and rejected topic used from 
+    # Get shadow state. Accepted and rejected topic used from 
     def get_shadow(self, shadow_name="",callback=None):
         shadow_topic = "$aws/things/{}/shadow".format(self.client_id)
         if shadow_name:
@@ -71,7 +71,7 @@ class ShadowManager:
             self.accepted_topic = "{}/get/accepted".format(shadow_topic)
             self.rejected_topic = "{}/get/rejected".format(shadow_topic)
 
-            #if callback on our topic already exist store it temporarly in old_callbacks dictionary
+            #if callback on our topic already exist store it temporarly in old_callbacks dictionary, thus we don't block users callback 
             if self.accepted_topic in self.mqtt_client.callbacks:
                 self.old_callbacks[self.accepted_topic] = self.mqtt_client.callbacks[self.accepted_topic]
             if self.rejected_topic in self.mqtt_client.callbacks:
@@ -85,13 +85,14 @@ class ShadowManager:
         
         self.mqtt_client.publish("{}/get".format(shadow_topic), "")
         
-
+    # Deletes the shadow based on a shadow name
     def delete_shadow(self, shadow_name=""):
         shadow_topic = "$aws/things/{}/shadow".format(self.client_id)
         if shadow_name:
             shadow_topic += "/name/{}".format(shadow_name)
         self.mqtt_client.publish("{}/delete".format(shadow_topic), "")
 
+    # Connects to all topics if user don't specify topics
     def connect_shadow(self, shadow_name="", topics=None):
         base_topic = "$aws/things/{}/shadow".format(self.client_id)
         if shadow_name:

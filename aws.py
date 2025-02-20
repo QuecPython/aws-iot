@@ -60,7 +60,7 @@ class Aws(object):
     def connect_shadow(self, shadow_name="", topics=None):
         self.shadow_manager.connect_shadow(shadow_name, topics)
 
-    # Set callback method for 
+    # Set callback method
     def set_callback(self, topic_name, callback):
         self.mqtt_client.set_callback(topic_name,callback)
 
