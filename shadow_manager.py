@@ -43,7 +43,7 @@ class ShadowManager:
                 self.logging.info("Shadow '{}' created.".format(shadow_name))
 
     #update shadow used for updating(if called from create shadow then used as a create shadow mechanism)
-    def update_shadow(self, shadow_name, state):
+    def update_shadow(self, shadow_name="", state=""):
         if not state:
             self.logging.error("Enter state then try again")
             return
