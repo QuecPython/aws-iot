@@ -24,20 +24,6 @@ Guide to registering a device as a Thing in AWS IoT Core, setting up MQTT commun
   - `get_shadow()`: Retrieve state.
   - `delete_shadow()`: Remove shadow.
 
-## Installation
-```sh
-pip install awsiot-sdk
-```
-
-## Usage
-```python
-from awsiot import AWSIoTClient
-client = AWSIoTClient("device_id")
-client.connect()
-client.subscribe("topic_name", callback_function)
-client.publish("topic_name", "message")
-```
-
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
