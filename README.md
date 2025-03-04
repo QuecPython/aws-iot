@@ -8,16 +8,16 @@ Guide to registering a device as a Thing in AWS IoT Core, setting up MQTT commun
 - MQTT-based messaging
 - AWS IoT Shadow state management
 
-## Register the Device
+### Register the Device
 1. **Create an IoT Policy**: Allow necessary actions.
 2. **Create a Thing**: Generate a certificate for authentication.
 
-## MQTT Communication
+### MQTT Communication
 - **Subscribe** to topics to receive messages.
 - **Publish** messages to topics.
 - **Use Callback Functions** for real-time updates.
 
-## AWS IoT Device Shadow
+### AWS IoT Device Shadow
 - You can create Shadow in AwS IoT console or via program functions.
 - **Key Operations**:
   - `update_shadow()`: Update state.
