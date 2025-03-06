@@ -31,4 +31,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Conclusion
-Steps for AWS IoT Core device setup, MQTT communication, and device shadow management. For more in depth informations about using this library check docs/User_guide
+Steps for AWS IoT Core device setup, MQTT communication, and device shadow management. For more in depth informations about using this library check [docs/User_Guide_AWS.md](docs/User_Guide_AWS.md)

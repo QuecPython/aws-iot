@@ -1,6 +1,6 @@
 # AWS IoT to Device Communication
 
-![AWS IoT Diagram](../media/AWS_diagram.png)
+![AWS IoT Diagram](./media/AWS_diagram.png)
 
 First, we need to register our device (which can be a sensor, actuator, or mobile phone) as a **Thing**, which is a virtual representation of our device.
 
@@ -20,9 +20,9 @@ Then, we use our solution to communicate with the **AWS IoT Core** service.
      - Depending on the policy, certain actions can be allowed or restricted.
      - In this guide, we create a **non-restriction policy**, allowing all actions for all resources. However, in practice, devices may need restrictions on specific operations and topics.
 
-![](../media/aws_console1.png)
+![](./media/aws_console1.png)
 
-![](../media/aws_console2.png)
+![](./media/aws_console2.png)
 
 
 2. **Creating a Thing and obtaining certificates**  
@@ -38,7 +38,7 @@ Then, we use our solution to communicate with the **AWS IoT Core** service.
    - To find your endpoint:  
      - Navigate to **Connect → Domain configurations** and copy the **Domain name** from the domain configurations table.
 
-![](../media/aws_console3.png)
+![](./media/aws_console3.png)
 
 ---
 
@@ -50,13 +50,13 @@ Then, we use our solution to communicate with the **AWS IoT Core** service.
   - AWS IoT also publishes MQTT messages to inform devices and apps about changes and events.
   - Using the MQTT test client, you can **subscribe** to message topics and **publish** messages to verify communication.
   
- ![Test client](../media/aws_console_test_client.png)
+ ![Test client](./media/aws_console_test_client.png)
 
 ---
 
 ## Solution Design
 
- ![Design diagram](../media/diagram.png)
+ ![Design diagram](./media/diagram.png)
 
 ## Usage
 
@@ -115,10 +115,10 @@ Our existing Python implementation interacts with AWS IoT Core via MQTT, which i
     - `$aws/things/{client_id}/shadow/update/delta`
 
 Example JSON payload for updating a shadow (device reporting its state):
-![device](../media/json_device.png)
+![device](./media/json_device.png)
 
 Example JSON payload for requesting a device state change (cloud application):
-![client](../media/json_client.png)
+![client](./media/json_client.png)
 
 - **Shadow Retrieval (GET):**  
   Retrieves the current shadow document, including metadata.  
